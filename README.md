@@ -1,6 +1,11 @@
 If you use this software for any publication, please cite:
 Norgeot, B., Muenzen, K., Peterson, T.A. et al. Protected Health Information filter (Philter): accurately and securely de-identifying free-text clinical notes. npj Digit. Med. 3, 57 (2020). https://doi.org/10.1038/s41746-020-0258-y
 
+# Features
+
+-Random Date Shifting: all date PHI is bumped forward by a random 1–60-day window, preserving format length  
+- Asterisk Masking: non-date PHI remains replaced by “*” exactly as before
+
 # Installing Philter
 
 To install Philter from PyPi, run the following command:
@@ -18,6 +23,12 @@ python3 -m philter_ucsf [flags, see below]
 However, we strongly suggest that you download the project source code and run all sample commands below from the home directory before running the install version of Philter.
 
 # Installing Requirements
+### Requirements
+
+- Python 3.7+  
+- NLTK  
+- `python-dateutil` (for fuzzy date parsing)  
+
 
 To install the Python requirements, run the following command:
 
@@ -57,6 +68,16 @@ To remove non-HIPAA PHI annotations from the I2B2 XML files, run the following c
 ```bash
 python improve_i2b2_notes.py -i data/i2b2_xml/ -o data/i2b2_xml_updated/
 ```
+### Date & Age Shifting
+
+When you run with `--outputformat asterisk`, Philter now:
+
+1. **Date Shifting**  
+   - Detects all spans tagged as `"DATE"`  
+   - Shifts each by the same random offset (1–60 days) per note  
+   - Outputs in ISO format (`YYYY-MM-DD`), then pads/truncates to the original length
+
+
 
 ## 1. Running Philter WITHOUT evaluation (no ground-truth annotations required)
 
@@ -121,3 +142,7 @@ python3 main.py -i ./data/i2b2_notes/ -a ./data/i2b2_anno/ -o ./data/i2b2_result
 ```
 
 By defult, this will output PHI-reduced notes (.txt format) in the specified output directory. If this command is used with the --outputformat i2b2 flag (or with no --outputformat specified, since i2b2 format is the default option), the evaluation script will not be run and the script will output notes with the original text and the Philter PHI tags (.xml format) in the specified output directory.
+
+
+# Appendix
+We use dateutil.parser.parse(..., fuzzy=True) so we’ll still pick up dates even when they’re embedded in surrounding text (e.g. “DOB is 04/07/69”).
